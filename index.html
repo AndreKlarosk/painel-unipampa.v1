@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Aulas Unipampa</title>
+    <!-- Tailwind CSS CDN (for utility classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons (Admin Gear, Fullscreen, etc.) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <!-- Placeholder for Unipampa Logo -->
+                <img src="https://placehold.co/40x40/cbd5e1/2d3748?text=UNI" class="logo" alt="Logo Unipampa"/>
+                <h1 class="app-title">Painel de Aulas</h1>
+            </div>
+            <div class="header-right">
+                <div class="datetime-info">
+                    <span id="datetime"></span>
+                    <span id="nextClassTimer" class="next-class-highlight"></span>
+                </div>
+                <!-- Theme toggle button -->
+                <button id="toggleTheme" class="theme-toggle-btn" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main action buttons (admin and fullscreen) - FIXED TOP RIGHT -->
+    <div class="action-btns-fixed">
+        <button class="action-btn fullscreen-btn" onclick="toggleFullscreen()" title="Tela Cheia">
+            <i class="fas fa-expand"></i>
+        </button>
+        <button class="action-btn admin-login-btn" onclick="abrirLogin()" title="Administração">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div id="dashboard-view" class="view-section is-active">
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="turno-filter" class="filter-label">Turno:</label>
+                <select id="turno-filter" class="filter-select">
+                    <option value="todos">Todos</option>
+                    <option value="manha">Manhã</option>
+                    <option value="tarde">Tarde</option>
+                    <option value="noite">Noite</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="dia-filter" class="filter-label">Dia:</label>
+                <select id="dia-filter" class="filter-select">
+                    <option value="auto">Hoje</option>
+                    <option value="domingo">Domingo</option>
+                    <option value="segunda">Segunda-feira</option>
+                    <option value="terça">Terça-feira</option>
+                    <option value="quarta">Quarta-feira</option>
+                    <option value="quinta">Quinta-feira</option>
+                    <option value="sexta">Sexta-feira</option>
+                    <option value="sábado">Sábado</option>
+                </select>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- Wrapper for scrollable content -->
+            <div class="cards-scroll-container">
+                <div class="cards-grid" id="cards-container">
+                    <!-- Class and event cards will be loaded here -->
+                    <p class="loading-message text-center col-span-full">Carregando aulas e eventos...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADMIN PANEL PAGE (Initially hidden) -->
+    <div id="admin-panel-page" class="view-section">
+        <div class="admin-page-container">
+            <button class="back-to-dashboard-btn" onclick="showDashboard()">
+                <i class="fas fa-arrow-left"></i> Voltar ao Painel
+            </button>
+
+            <div class="admin-page-layout">
+                <div class="admin-form-section">
+                    <h2 class="section-title">Adicionar/Editar</h2>
+                    
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" id="tab-classes" onclick="showForm('class')">Aulas</button>
+                        <button class="tab-btn" id="tab-events" onclick="showForm('event')">Eventos</button>
+                    </div>
+
+                    <!-- Class Form -->
+                    <form id="formTurma" class="class-form active">
+                        <input type="hidden" id="editClassId" />
+
+                        <div class="form-grid-layout">
+                            <div class="form-input-group">
+                                <label for="disciplina">Disciplina:</label>
+                                <input id="disciplina" placeholder="Ex: Introdução à Programação" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="professor">Professor:</label>
+                                <input id="professor" placeholder="Ex: Dr. João Silva" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="turmas">Turmas:</label>
+                                <input id="turmas" placeholder="Ex: A, B, C ou P11, P12" class="input-field" required />
+                            </div>
+                            
+                            <div class="form-input-group">
+                                <label for="bloco">Bloco:</label>
+                                <input id="bloco" placeholder="Ex: A" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="andar">Andar:</label>
+                                <input id="andar" type="number" placeholder="Ex: 1" class="input-field" required min="0" />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="sala">Sala:</label>
+                                <input id="sala" placeholder="Ex: 101" class="input-field" required />
+                            </div>
+
+                            <div class="form-input-group">
+                                <label for="diaSemana">Dia da Semana:</label>
+                                <select id="diaSemana" class="select-field" required>
+                                    <option value="">Selecione o dia</option>
+                                    <option value="domingo">Domingo</option>
+                                    <option value="segunda">Segunda-feira</option>
+                                    <option value="terça">Terça-feira</option>
+                                    <option value="quarta">Quarta-feira</option>
+                                    <option value="quinta">Quinta-feira</option>
+                                    <option value="sexta">Sexta-feira</option>
+                                    <option value="sábado">Sábado</option>
+                                </select>
+                            </div>
+                            <div class="form-input-group">
+                                <label for="horario1">Horário Início:</label>
+                                <input id="horario1" type="time" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="horario2">Horário Fim:</label>
+                                <input id="horario2" type="time" class="input-field" required />
+                            </div>
+                            
+                            <div class="form-input-group">
+                                <label for="turno">Turno:</label>
+                                <select id="turno" class="select-field" required>
+                                    <option value="">Selecione o turno</option>
+                                    <option value="manha">Manhã</option>
+                                    <option value="tarde">Tarde</option>
+                                    <option value="noite">Noite</option>
+                                </select>
+                            </div>
+                            <div class="form-input-group col-span-full">
+                                <label for="prioridade">Prioridade:</label>
+                                <select id="prioridade" class="select-field">
+                                    <option value="Baixa">Baixa</option>
+                                    <option value="Média" selected>Média</option>
+                                    <option value="Alta">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-controls">
+                            <button type="button" onclick="exportarDados('classes')" class="btn-icon">
+                                <i class="fas fa-file-export"></i> Exportar Classes
+                            </button>
+                            <button type="button" onclick="exportarCSV('classes')" class="btn-icon">
+                                <i class="fas fa-file-csv"></i> Exportar Classes (CSV)
+                            </button>
+                            <button type="button" onclick="document.getElementById('importClassesFile').click()" class="btn-icon">
+                                <i class="fas fa-file-import"></i> Importar Classes
+                            </button>
+                            <input type="file" id="importClassesFile" accept=".json" style="display: none;" onchange="importarDados(event, 'classes')" />
+                        </div>
+
+                        <div id="toggle-sala-aberta" class="status-toggle-btn closed mt-4" onclick="toggleSalaAberta()">
+                            <i class="fas fa-lock"></i> Sala Fechada
+                        </div>
+                        <button type="submit" class="btn-action primary-btn mt-4">Salvar Turma</button>
+                        <button type="button" onclick="resetarDados('classes')" class="btn-action danger-btn mt-2">Resetar Classes</button>
+                    </form>
+
+                    <!-- Event Form (Initially hidden) -->
+                    <form id="formEvento" class="event-form">
+                        <input type="hidden" id="editEventId" />
+
+                        <div class="form-grid-layout">
+                            <div class="form-input-group col-span-full">
+                                <label for="tituloEvento">Título do Evento:</label>
+                                <input id="tituloEvento" placeholder="Ex: Reunião do Grêmio Estudantil" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="localEvento">Local:</label>
+                                <input id="localEvento" placeholder="Ex: B1, S101 ou Auditório" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="dataEvento">Data:</label>
+                                <input id="dataEvento" type="date" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="horarioInicioEvento">Horário Início:</label>
+                                <input id="horarioInicioEvento" type="time" class="input-field" required />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="horarioFimEvento">Horário Fim:</label>
+                                <input id="horarioFimEvento" type="time" class="input-field" />
+                            </div>
+                            <div class="form-input-group">
+                                <label for="turnoEvento">Turno:</label>
+                                <select id="turnoEvento" class="select-field">
+                                    <option value="">Selecione o turno</option>
+                                    <option value="manha">Manhã</option>
+                                    <option value="tarde">Tarde</option>
+                                    <option value="noite">Noite</option>
+                                    <option value="integral">Integral</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-controls">
+                            <button type="button" onclick="exportarDados('events')" class="btn-icon">
+                                <i class="fas fa-file-export"></i> Exportar Eventos
+                            </button>
+                            <button type="button" onclick="exportarCSV('events')" class="btn-icon">
+                                <i class="fas fa-file-csv"></i> Exportar Eventos (CSV)
+                            </button>
+                            <button type="button" onclick="document.getElementById('importEventsFile').click()" class="btn-icon">
+                                <i class="fas fa-file-import"></i> Importar Eventos
+                            </button>
+                            <input type="file" id="importEventsFile" accept=".json" style="display: none;" onchange="importarDados(event, 'events')" />
+                        </div>
+
+                        <button type="submit" class="btn-action primary-btn mt-4">Salvar Evento</button>
+                        <button type="button" onclick="resetarDados('events')" class="btn-action danger-btn mt-2">Resetar Eventos</button>
+                    </form>
+
+                </div>
+
+                <div class="admin-table-section">
+                    <h2 class="section-title">Gestão</h2>
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" id="table-tab-classes" onclick="showTable('classes')">Aulas</button>
+                        <button class="tab-btn" id="table-tab-events" onclick="showTable('events')">Eventos</button>
+                    </div>
+
+                    <!-- Classes Table -->
+                    <div id="classes-table-container" class="admin-table-wrapper active">
+                        <div class="admin-table-filters">
+                            <label for="admin-dia-filter" class="filter-label">Filtrar por dia:</label>
+                            <select id="admin-dia-filter" class="filter-select">
+                                <option value="todos">Todos</option>
+                                <option value="domingo">Domingo</option>
+                                <option value="segunda">Segunda-feira</option>
+                                <option value="terça">Terça-feira</option>
+                                <option value="quarta">Quarta-feira</option>
+                                <option value="quinta">Quinta-feira</option>
+                                <option value="sexta">Sexta-feira</option>
+                                <option value="sábado">Sábado</option>
+                            </select>
+                            <input id="busca-admin-classes" placeholder="Buscar disciplina, sala ou professor" class="input-field search-input" />
+                        </div>
+                        <div class="admin-table-container">
+                            <table class="data-table w-full table-auto text-sm" id="admin-table-classes">
+                                <thead>
+                                    <tr>
+                                        <th data-sort-key="bloco">Localização <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="disciplina">Disciplina <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="turmas">Turmas <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="professor">Professor <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="horario1">Horários <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="turno">Turno <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="diaSemana">Dia <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th style="min-width: 120px;">Ações</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body-classes">
+                                    <!-- Admin class table rows will be loaded here -->
+                                </tbody>
+                            </table>
+                            <p id="adminTableClassesEmptyMessage" class="loading-message hidden">Nenhuma aula encontrada para os filtros selecionados.</p>
+                        </div>
+                    </div>
+
+                    <!-- Events Table (Initially hidden) -->
+                    <div id="events-table-container" class="admin-table-wrapper">
+                        <div class="admin-table-filters">
+                            <label for="admin-data-filter-events" class="filter-label">Filtrar por data:</label>
+                            <input type="date" id="admin-data-filter-events" class="filter-select" />
+                            <input id="busca-admin-events" placeholder="Buscar título ou local do evento" class="input-field search-input" />
+                        </div>
+                        <div class="admin-table-container">
+                            <table class="data-table" id="admin-table-events">
+                                <thead>
+                                    <tr>
+                                        <th data-sort-key="titulo">Título <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="local">Local <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="data">Data <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="horarioInicio">Horário <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th data-sort-key="turno">Turno <i class="fas fa-sort table-sort-icon"></i></th>
+                                        <th style="min-width: 120px;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body-events">
+                                    <!-- Admin event table rows will be loaded here -->
+                                </tbody>
+                            </table>
+                            <p id="adminTableEventsEmptyMessage" class="loading-message hidden">Nenhum evento encontrado para os filtros selecionados.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="app-footer">
+        <p>&copy; 2024 Painel de Aulas Unipampa. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Login Modal (remains a modal) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="hideLoginModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="modal-title">Login de Administrador</h2>
+            <div class="form-input-group">
+                <label for="login-usuario">Usuário:</label>
+                <input type="text" id="login-usuario" placeholder="Nome de usuário" required class="input-field" />
+            </div>
+            <div class="form-input-group">
+                <label for="login-senha">Senha:</label>
+                <input type="password" id="login-senha" placeholder="Sua senha" required class="input-field" />
+            </div>
+            <button onclick="validarLogin()" class="btn-action primary-btn">Entrar</button>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="customMessageBox" class="message-modal" style="display: none;">
+        <div class="message-content">
+            <span id="messageIcon" class="message-icon"></span>
+            <p id="messageText" class="message-text"></p>
+            <div id="messageActions" class="message-actions">
+                <button id="messageOkBtn" class="btn-action primary-btn">OK</button>
+                <button id="messageConfirmYesBtn" class="btn-action primary-btn hidden">Sim</button>
+                <button id="messageConfirmNoBtn" class="btn-action secondary-btn hidden">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript File -->
+    <script src="script.js"></script>
+</body>
+</html>
