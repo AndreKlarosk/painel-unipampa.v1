@@ -10,7 +10,7 @@ let loggedIn = false; // Simple login state
 
 // Default admin credentials (for demonstration purposes)
 const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'admin123';
+const ADMIN_PASS = 'admin';
 
 // Mapeamento de dias da semana para evitar inconsistências
 const DAY_MAP_PT = {
